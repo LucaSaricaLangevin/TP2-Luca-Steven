@@ -1,5 +1,5 @@
 from PyQt6.QtGui import QAction
-from PyQt6.QtWidgets import QVBoxLayout, QLineEdit, QCheckBox, QPushButton
+from PyQt6.QtWidgets import QVBoxLayout, QLineEdit, QCheckBox, QPushButton, QMainWindow
 
 
 class FunctionView(QMainWindow):

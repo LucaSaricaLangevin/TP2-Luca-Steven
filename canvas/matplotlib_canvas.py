@@ -6,6 +6,7 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from models.main_window_model import MainWindowModel
 
 
+# Aide de ChatGPT pour les mathématiques de la somme de Riemann, oui je suis pas bon en math -Steven
 class PlotCanvas(FigureCanvas):
     __model: MainWindowModel
 

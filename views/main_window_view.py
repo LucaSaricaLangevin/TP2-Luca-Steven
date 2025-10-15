@@ -38,21 +38,13 @@ class MainWindowView(QMainWindow):
 
         self.functionLineEdit.editingFinished.connect(self.on_function_edited)
 
-
-        # Pour matplotlib_canvas (valeurs par défaut)
-        self.fonction = None
-        self.borne_inf = 0
-        self.borne_sup = 10
-        self.nb_rectangles = 20
-        self.orientation = "Gauche"
-
     def on_orientation_changed(self, value):
         self.model.orientation = self.orientationComboBox.currentText()
 
     def on_nb_rectangles_changed(self, value):
         self.model.nb_rectangles = int(self.nombreSlider.value())
 
-        # manque validation bornes ?
+    # manque validation bornes ?
     def on_borne_inf_edited(self):
         self.model.borne_inf = float(self.infLineEdit.text())
 
@@ -61,7 +53,7 @@ class MainWindowView(QMainWindow):
 
     def on_function_edited(self):
         function_str = self.functionLineEdit.text()
-        if self.model.validate_fonction(function_str):
+        if self.model.validate_function(function_str):
             self.model.function = function_str
         else:
             QMessageBox.critical(self, "Erreur", "La fonction est invalide")

@@ -35,10 +35,10 @@ class PlotCanvas(FigureCanvas):
                 dx = (borne_sup - borne_inf) / nb_rectangles
 
                 # Oriente la somme de Riemann
-                if orientation == "Gauche":
-                    x_points = x_rect[:-1]
-                elif orientation == "Droite":
+                if orientation == "Droite":
                     x_points = x_rect[1:]
+                else:
+                    x_points = x_rect[:-1]
 
                 # Hauteur des rectangles
                 y_points = f(x_points)

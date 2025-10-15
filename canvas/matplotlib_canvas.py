@@ -21,10 +21,10 @@ class PlotCanvas(FigureCanvas):
             self.__ax.clear()
             f = self.__model.fonction
             if f:
-                borne_inf = float(self.__model.variable.infLineEdit.text())
-                borne_sup = float(self.__model.variable.supLineEdit.text())
-                nb_rectangles = int(self.__model.variable.nbRectSpinBox.value())
-                orientation = self.__model.variable.orientationComboBox.currentText()
+                borne_inf = self.__model.borne_inf
+                borne_sup = self.__model.borne_sup
+                nb_rectangles = self.__model.nb_rectangles
+                orientation = self.__model.orientation
 
                 x = np.linspace(borne_inf, borne_sup, 1000) # le 1000 à adapter selon la fluidité ?
                 y = f(x)

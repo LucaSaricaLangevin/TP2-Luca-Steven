@@ -1,5 +1,6 @@
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QVBoxLayout, QLineEdit, QCheckBox, QPushButton, QMainWindow
+from PyQt6.uic import loadUi
 
 from canvas.matplotlib_canvas import PlotCanvas
 from models.main_window_model import MainWindowModel
@@ -17,13 +18,13 @@ class FunctionView(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        #loadUi("ui/#mettre nom du UI ici.ui", self)
+        loadUi("ui/function.ui", self)
 
         self.model = MainWindowModel()
         canvas = PlotCanvas(self.model)
         # Canvas Qt pour matplotlib
         toolbar = NavigationToolbar(canvas, self)
-        #
+
         self.matplotlibVLayout.insertWidget(0,toolbar)
         self.matplotlibVLayout.insertWidget(1, canvas)
 

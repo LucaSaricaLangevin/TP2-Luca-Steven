@@ -41,7 +41,7 @@ class MainWindowView(QMainWindow):
     def on_function_edited(self):
         function_str = self.functionLineEdit.text()
         if self.model.validate_fonction(function_str):
-            self.model.fonction = function_str
+            self.model.function = function_str
         else:
             QMessageBox.critical(self, "Erreur", "La fonction est invalide")
             self.functionLineEdit.clear()

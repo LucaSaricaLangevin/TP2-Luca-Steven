@@ -19,7 +19,7 @@ class PlotCanvas(FigureCanvas):
     def dessiner(self):
         try:
             self.__ax.clear()
-            f = self.__model.fonction
+            f = self.__model.function
             if f:
                 borne_inf = float(self.__model.variable.infLineEdit.text())
                 borne_sup = float(self.__model.variable.supLineEdit.text())

@@ -5,6 +5,7 @@ from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as Navigation
 
 from canvas.matplotlib_canvas import PlotCanvas
 from models.main_window_model import MainWindowModel
+from models import main_window_model
 
 
 class MainWindowView(QMainWindow):
@@ -36,7 +37,7 @@ class MainWindowView(QMainWindow):
         self.nombreSlider.sliderMoved.connect(lambda: setattr(self.model, "rectangles_active", True))
         self.nombreSlider.sliderMoved.connect(self.on_nb_rectangles_changed)
         self.orientationComboBox.currentIndexChanged.connect(self.on_orientation_changed)
-        # self.calculerButton.clicked.connect(...)
+        self.calculerButton.clicked.connect(self.on_calculer_clicked)
         # self.exportButton.clicked.connect(...)
 
     def on_function_edited(self):
@@ -59,3 +60,43 @@ class MainWindowView(QMainWindow):
 
     def on_orientation_changed(self):
         self.model.orientation = self.orientationComboBox.currentText()
+
+    def on_calculer_clicked(self):
+        """
+        Méthode appelée lors du clic sur le bouton Calculer
+        """
+        # Valider que la fonction existe
+        if self.model.function is None:
+            QMessageBox.warning(self, "Attention", "Veuillez entrer une fonction valide")
+            return
+
+        # Valider les bornes
+        try:
+            borne_inf = self.model.borne_inf
+            borne_sup = self.model.borne_sup
+
+            if borne_inf >= borne_sup:
+                QMessageBox.warning(self, "Attention",
+                                    "La borne inférieure doit être plus petite que la borne supérieure")
+                return
+        except Exception as e:
+            QMessageBox.critical(self, "Erreur", f"Erreur avec les bornes : {e}")
+            return
+
+        # Calculer l'intégrale
+        resultat = self.model.calculer()
+
+        if resultat is None:
+            QMessageBox.critical(self, "Erreur",
+                                 "Impossible de calculer l'intégrale. Vérifiez votre fonction et vos paramètres.")
+            self.integraleLineEdit.clear()
+        else:
+            # Afficher le résultat dans le champ integraleLineEdit
+            self.integraleLineEdit.setText(f"{resultat:.6f}")
+
+            # Optionnel : calculer aussi la somme de Riemann (avant multiplication par dx)
+            dx = (self.model.borne_sup - self.model.borne_inf) / self.model.nb_rectangles
+            somme = resultat / dx
+            self.sommeLineEdit.setText(f"{somme:.6f}")
+
+        # Le canvas se mettra à jour automatiquement grâce au signal modelChanged

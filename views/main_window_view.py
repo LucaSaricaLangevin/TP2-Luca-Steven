@@ -5,7 +5,7 @@ from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as Navigation
 
 from canvas.matplotlib_canvas import PlotCanvas
 from models.main_window_model import MainWindowModel
-from models import main_window_model
+
 
 
 class MainWindowView(QMainWindow):

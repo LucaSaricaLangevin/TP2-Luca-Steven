@@ -8,11 +8,10 @@ from models.main_window_model import MainWindowModel
 from models import main_window_model
 
 
-
 class MainWindowView(QMainWindow):
     def __init__(self):
         super().__init__()
-        loadUi(r"C:\Users\lucas\PycharmProjects\TP2-Luca-Steven\ui\mainWindow.ui", self)
+        loadUi("../ui/mainWindow.ui", self)
 
         self.model = MainWindowModel()
         self.canvas = PlotCanvas(self.model)
@@ -22,8 +21,8 @@ class MainWindowView(QMainWindow):
 
         # connexions
         self.functionLineEdit.editingFinished.connect(self.on_function_edited)
-        self.infLineEdit.editingFinished.connect(self.on_borne_inf_edited)
-        self.supLineEdit.editingFinished.connect(self.on_borne_sup_edited)
+        self.infLineEdit.textChanged.connect(self.on_borne_inf_edited)
+        self.supLineEdit.textChanged.connect(self.on_borne_sup_edited)
         self.nombreSlider.sliderMoved.connect(lambda: setattr(self.model, "rectangles_active", True))
         self.nombreSlider.sliderMoved.connect(self.on_nb_rectangles_changed)
         self.orientationComboBox.currentIndexChanged.connect(self.on_orientation_changed)
@@ -39,15 +38,21 @@ class MainWindowView(QMainWindow):
 
     def on_borne_inf_edited(self):
         try:
-            self.model.borne_inf = float(self.infLineEdit.text())
+            val = float(self.infLineEdit.text())
+            self.model.borne_inf = val
+            self.infLineEdit.setStyleSheet("")  # Réinitialiser le style si valide
         except ValueError:
-            QMessageBox.warning(self, "Erreur", "Borne inférieure invalide")
+            # Style visuel pour indiquer une erreur
+            self.infLineEdit.setStyleSheet("border: 1px solid red;")
 
     def on_borne_sup_edited(self):
         try:
-            self.model.borne_sup = float(self.supLineEdit.text())
+            val = float(self.supLineEdit.text())
+            self.model.borne_sup = val
+            self.supLineEdit.setStyleSheet("")  # Réinitialiser le style si valide
         except ValueError:
-            QMessageBox.warning(self, "Erreur", "Borne supérieure invalide")
+            # Style visuel pour indiquer une erreur
+            self.supLineEdit.setStyleSheet("border: 1px solid red;")
 
     def on_nb_rectangles_changed(self):
         self.model.nb_rectangles = int((self.nombreSlider.value() + 1) * 2)

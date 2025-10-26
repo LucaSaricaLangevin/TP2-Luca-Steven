@@ -7,38 +7,51 @@ from models.main_window_model import MainWindowModel
 
 class PlotCanvas(FigureCanvas):
     def __init__(self, model: MainWindowModel):
-        self.__fig, self.__ax = plt.subplots()
-        super().__init__(self.__fig)
-        self.__model = model
-        self.__model.modelChanged.connect(self.dessiner)
+        self.fig, self.ax = plt.subplots()
+        super().__init__(self.fig)
+        self.model = model
+        self.model.modelChanged.connect(self.dessiner)
 
     def dessiner(self):
         try:
-            self.__ax.clear()
-            f = self.__model.function
+            self.ax.clear()
+            f = self.model.function
             if f:
-                borne_inf = self.__model.borne_inf
-                borne_sup = self.__model.borne_sup
-                x = np.linspace(borne_inf, borne_sup, 1000)
+                a, b = self.model.borne_inf, self.model.borne_sup
+                x = np.linspace(a, b, 1000)
                 y = f(x)
-                self.__ax.plot(x, y, label="f(x)")
+                self.ax.plot(x, y, label="f(x)")
 
-                if self.__model.rectangles_active:
-                    nb_rectangles = self.__model.nb_rectangles
-                    orientation = self.__model.orientation
-                    x_rect = np.linspace(borne_inf, borne_sup, nb_rectangles + 1)
-                    dx = (borne_sup - borne_inf) / nb_rectangles
-                    x_points = x_rect[1:] if orientation == "Droite" else x_rect[:-1]
-                    y_points = f(x_points)
-                    self.__ax.bar(
-                        x_points, y_points, width=dx,
-                        alpha=0.3, align='edge',
-                        edgecolor='black', color='orange',
-                        label=f"Somme de Riemann ({orientation})"
-                    )
+                # rectangles
+                if self.model.rectangles_active:
+                    n = self.model.nb_rectangles
+                    dx = (b - a) / n
+                    if self.model.orientation == "Droite":
+                        x_rect = np.linspace(a + dx, b, n)
+                        align = 'edge'  # Rectangle part de x_rect vers la droite
+                    else:  # Gauche
+                        x_rect = np.linspace(a, b - dx, n)
+                        align = 'edge'  # Mais on veut qu'il parte vers la gauche!
 
-            self.__ax.legend()
+                    y_rect = f(x_rect)
+
+                    # Pour "Gauche", on doit dessiner le rectangle en partant de x_rect - dx
+                    if self.model.orientation == "Gauche":
+                        self.ax.bar(
+                            x_rect - dx, y_rect, width=dx,
+                            alpha=0.3, align='edge',
+                            edgecolor='black', color='orange',
+                            label=f"Somme de Riemann ({self.model.orientation})"
+                        )
+                    else:
+                        self.ax.bar(
+                            x_rect, y_rect, width=dx,
+                            alpha=0.3, align='edge',
+                            edgecolor='black', color='orange',
+                            label=f"Somme de Riemann ({self.model.orientation})"
+                        )
+
+            self.ax.legend()
             self.draw()
-
         except Exception as e:
-            QMessageBox.critical(self, "Erreur", f"La fonction est invalide : {e}")
+            QMessageBox.critical(self, "Erreur", f"Erreur dans le dessin : {e}")

@@ -8,29 +8,19 @@ from models.main_window_model import MainWindowModel
 from models import main_window_model
 
 
-class MainWindowView(QMainWindow):
-    functionLayout: QVBoxLayout
-    functionLineEdit: QLineEdit
-    infLineEdit: QLineEdit
-    supLineEdit: QLineEdit
-    nombreSlider: QSlider
-    orientationComboBox: QComboBox
-    calculerButton: QPushButton
-    exportButton: QPushButton
-    sommeLineEdit: QLineEdit
-    integraleLineEdit: QLineEdit
 
+class MainWindowView(QMainWindow):
     def __init__(self):
         super().__init__()
-        loadUi("ui/mainWindow.ui", self)
+        loadUi(r"C:\Users\lucas\PycharmProjects\TP2-Luca-Steven\ui\mainWindow.ui", self)
 
         self.model = MainWindowModel()
         self.canvas = PlotCanvas(self.model)
         toolbar = NavigationToolbar(self.canvas, self)
-
         self.functionLayout.insertWidget(0, toolbar)
         self.functionLayout.insertWidget(1, self.canvas)
 
+        # connexions
         self.functionLineEdit.editingFinished.connect(self.on_function_edited)
         self.infLineEdit.editingFinished.connect(self.on_borne_inf_edited)
         self.supLineEdit.editingFinished.connect(self.on_borne_sup_edited)
@@ -38,65 +28,55 @@ class MainWindowView(QMainWindow):
         self.nombreSlider.sliderMoved.connect(self.on_nb_rectangles_changed)
         self.orientationComboBox.currentIndexChanged.connect(self.on_orientation_changed)
         self.calculerButton.clicked.connect(self.on_calculer_clicked)
-        # self.exportButton.clicked.connect(...)
 
     def on_function_edited(self):
-        function_str = self.functionLineEdit.text()
-        if self.model.validate_function(function_str):
-            self.model.function = function_str
+        f_str = self.functionLineEdit.text()
+        if self.model.validate_function(f_str):
+            self.model.function_str = f_str
         else:
-            QMessageBox.critical(self, "Erreur", "La fonction est invalide")
+            QMessageBox.critical(self, "Erreur", "Fonction invalide")
             self.functionLineEdit.clear()
-            self.functionLineEdit.setStyleSheet("background-color: white;")
 
     def on_borne_inf_edited(self):
-        self.model.borne_inf = float(self.infLineEdit.text())
+        try:
+            self.model.borne_inf = float(self.infLineEdit.text())
+        except ValueError:
+            QMessageBox.warning(self, "Erreur", "Borne inférieure invalide")
 
     def on_borne_sup_edited(self):
-        self.model.borne_sup = float(self.supLineEdit.text())
+        try:
+            self.model.borne_sup = float(self.supLineEdit.text())
+        except ValueError:
+            QMessageBox.warning(self, "Erreur", "Borne supérieure invalide")
 
     def on_nb_rectangles_changed(self):
-        self.model.nb_rectangles = int(self.nombreSlider.value())
+        self.model.nb_rectangles = int((self.nombreSlider.value() + 1) * 2)
 
     def on_orientation_changed(self):
         self.model.orientation = self.orientationComboBox.currentText()
 
     def on_calculer_clicked(self):
-        """
-        Méthode appelée lors du clic sur le bouton Calculer
-        """
-        # Valider que la fonction existe
-        if self.model.function is None:
+        if not self.model.function:
             QMessageBox.warning(self, "Attention", "Veuillez entrer une fonction valide")
             return
 
-        # Valider les bornes
-        try:
-            borne_inf = self.model.borne_inf
-            borne_sup = self.model.borne_sup
-
-            if borne_inf >= borne_sup:
-                QMessageBox.warning(self, "Attention",
-                                    "La borne inférieure doit être plus petite que la borne supérieure")
-                return
-        except Exception as e:
-            QMessageBox.critical(self, "Erreur", f"Erreur avec les bornes : {e}")
+        a, b = self.model.borne_inf, self.model.borne_sup
+        if a >= b:
+            QMessageBox.warning(self, "Attention", "Borne inférieure >= borne supérieure")
             return
 
-        # Calculer l'intégrale
-        resultat = self.model.calculer()
+        # calculer
+        riemann, integrale = self.model.calculer()
 
-        if resultat is None:
-            QMessageBox.critical(self, "Erreur",
-                                 "Impossible de calculer l'intégrale. Vérifiez votre fonction et vos paramètres.")
+        if riemann is None or integrale is None:
+            QMessageBox.critical(self, "Erreur", "Impossible de calculer la somme ou l'intégrale")
+            self.sommeLineEdit.clear()
             self.integraleLineEdit.clear()
-        else:
-            # Afficher le résultat dans le champ integraleLineEdit
-            self.integraleLineEdit.setText(f"{resultat:.6f}")
+            return
 
-            # Optionnel : calculer aussi la somme de Riemann (avant multiplication par dx)
-            dx = (self.model.borne_sup - self.model.borne_inf) / self.model.nb_rectangles
-            somme = resultat / dx
-            self.sommeLineEdit.setText(f"{somme:.6f}")
+        # mise à jour UI
+        self.sommeLineEdit.setText(f"{riemann:.6f}")
+        self.integraleLineEdit.setText(f"{integrale:.6f}")
 
-        # Le canvas se mettra à jour automatiquement grâce au signal modelChanged
+        # redessiner le graphique
+        self.model.modelChanged.emit()

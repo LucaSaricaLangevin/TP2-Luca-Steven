@@ -12,11 +12,12 @@ from models.function_list_model import FunctionListModel
 
 class FunctionListView(QDockWidget):
 
-    def __init__(self, model: FunctionListModel = None):
+    def __init__(self, model: FunctionListModel = None, main_window=None):
         super().__init__()
         loadUi("../ui/function_list.ui", self)
 
         self.model = model if model else FunctionListModel()
+        self.main_window = main_window
 
         self.listWidget: QListWidget
         self.functionLineEdit: QLineEdit
@@ -30,7 +31,7 @@ class FunctionListView(QDockWidget):
 
         self.model.functionsChanged.connect(self.update_list_widget)
         self.listWidget.itemClicked.connect(self.on_item_selected)
-        self.listWidget.itemDoubleClicked.connect(self.on_item_double_clicked)  # pour éditer la liste
+        self.listWidget.itemDoubleClicked.connect(self.on_item_double_clicked)
 
         # Configurer le QListWidget pour afficher des icônes LaTeX
         self.listWidget.setIconSize(QSize(200, 40))
@@ -42,7 +43,7 @@ class FunctionListView(QDockWidget):
         self.setMinimumWidth(250)
         self.resize(300, 600)
 
-        # les fonctionnalités du dock (aide Claude pour l'intégration du DockWidget au projet)
+        # les fonctionnalités du dock
         self.setFeatures(
             QDockWidget.DockWidgetFeature.DockWidgetClosable |
             QDockWidget.DockWidgetFeature.DockWidgetMovable |
@@ -54,7 +55,12 @@ class FunctionListView(QDockWidget):
             Qt.DockWidgetArea.RightDockWidgetArea
         )
 
-    # Mention à Claude pour le truc de LaTeX
+    def get_latex_color(self):
+        """Retourne la couleur appropriée pour le LaTeX selon le thème"""
+        if self.main_window and hasattr(self.main_window, 'is_dark_mode'):
+            return 'white' if self.main_window.is_dark_mode else 'black'
+        return 'white'  # Par défaut dark mode
+
     def function_to_latex(self, function_str: str) -> str:
         """Convertit une fonction Python en LaTeX en utilisant sympy"""
         try:
@@ -77,7 +83,7 @@ class FunctionListView(QDockWidget):
             return f'${latex}$'
 
     def render_latex_to_pixmap(self, latex_str: str) -> QPixmap:
-        """Rend une expression LaTeX en QPixmap (aide de Claude)"""
+        """Rend une expression LaTeX en QPixmap avec la couleur adaptée au thème"""
         try:
             # Créer une figure matplotlib
             fig = plt.figure(figsize=(4, 0.5))
@@ -85,10 +91,13 @@ class FunctionListView(QDockWidget):
             ax = fig.add_axes([0, 0, 1, 1])
             ax.axis('off')
 
+            # Obtenir la couleur appropriée
+            text_color = self.get_latex_color()
+
             # Rendre le texte LaTeX
             ax.text(0.5, 0.5, latex_str,
                    fontsize=18,
-                   color='white',
+                   color=text_color,
                    ha='center',
                    va='center',
                    transform=ax.transAxes)
@@ -111,7 +120,7 @@ class FunctionListView(QDockWidget):
             return QPixmap()
 
     def update_list_widget(self):
-        """Met à jour le widget selon les fonctions du modèle (modifié par Claude pour LaTeX)"""
+        """Met à jour le widget selon les fonctions du modèle"""
         self.listWidget.clear()
         for function in self.model.functions:
             # Créer un item
@@ -132,6 +141,10 @@ class FunctionListView(QDockWidget):
             item.setData(Qt.ItemDataRole.UserRole, function)
 
             self.listWidget.addItem(item)
+
+    def update_latex_color(self):
+        """Met à jour la couleur du LaTeX après changement de thème"""
+        self.update_list_widget()
 
     def on_add_function(self):
         function_text = self.functionLineEdit.text().strip()
@@ -197,7 +210,7 @@ class FunctionListView(QDockWidget):
 
     def on_item_double_clicked(self, item):
         # il faut double-click pour edit la fonction
-        #rRécupérer la fonction originale (pas le rendu LaTeX)
+        # Récupérer la fonction originale (pas le rendu LaTeX)
         function_text = item.data(Qt.ItemDataRole.UserRole)
         if not function_text:
             function_text = item.text()

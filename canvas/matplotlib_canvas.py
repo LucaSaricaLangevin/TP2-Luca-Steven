@@ -67,57 +67,41 @@ class PlotCanvas(FigureCanvas):
     def dessiner(self):
         try:
             self.ax.clear()
-
-            # Réappliquer les couleurs après clear
-            self.ax.set_facecolor(self.bg_color)
-            self.ax.spines['bottom'].set_color(self.text_color)
-            self.ax.spines['top'].set_color(self.text_color)
-            self.ax.spines['left'].set_color(self.text_color)
-            self.ax.spines['right'].set_color(self.text_color)
-            self.ax.tick_params(colors=self.text_color, which='both')
-
             f = self.model.function
             if f:
                 a, b = self.model.borne_inf, self.model.borne_sup
                 x = np.linspace(a, b, 1000)
                 y = f(x)
-                self.ax.plot(x, y, label="f(x)", color='#00bcd4', linewidth=2)
+                self.ax.plot(x, y, label="f(x)")
 
-                # rectangles
-                if self.model.rectangles_active:
+                # rectangles (seulement si actifs ET nb_rectangles > 0)
+                if self.model.rectangles_active and self.model.nb_rectangles > 0:
                     n = self.model.nb_rectangles
                     dx = (b - a) / n
                     if self.model.orientation == "Droite":
                         x_rect = np.linspace(a + dx, b, n)
-                        align = 'edge'
                     else:  # Gauche
                         x_rect = np.linspace(a, b - dx, n)
-                        align = 'edge'
 
                     y_rect = f(x_rect)
 
+                    # Pour "Gauche", on doit dessiner le rectangle en partant de x_rect - dx
                     if self.model.orientation == "Gauche":
                         self.ax.bar(
                             x_rect - dx, y_rect, width=dx,
                             alpha=0.3, align='edge',
-                            edgecolor=self.text_color, color='orange',
+                            edgecolor='black', color='orange',
                             label=f"Somme de Riemann ({self.model.orientation})"
                         )
                     else:
                         self.ax.bar(
                             x_rect, y_rect, width=dx,
                             alpha=0.3, align='edge',
-                            edgecolor=self.text_color, color='orange',
+                            edgecolor='black', color='orange',
                             label=f"Somme de Riemann ({self.model.orientation})"
                         )
 
-            # Configurer la légende avec les bonnes couleurs
-            legend = self.ax.legend()
-            legend.get_frame().set_facecolor(self.bg_color)
-            legend.get_frame().set_edgecolor(self.text_color)
-            for text in legend.get_texts():
-                text.set_color(self.text_color)
-
+            self.ax.legend()
             self.draw()
         except Exception as e:
             QMessageBox.critical(self, "Erreur", f"Erreur dans le dessin : {e}")

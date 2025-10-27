@@ -1,7 +1,6 @@
 import sympy as sp
 from PyQt6.QtCore import pyqtSignal, QObject
 import numpy as np
-from PyQt6.QtWidgets import QMessageBox
 
 
 class MainWindowModel(QObject):
@@ -14,13 +13,13 @@ class MainWindowModel(QObject):
         self.__x = sp.Symbol("x")
         self.__borne_inf = 0.0
         self.__borne_sup = 1.0
-        self.__nb_rectangles = 10
+        self.__nb_rectangles = 0
         self.__orientation = "Gauche"
         self.__rectangles_active = False
         self.__valeur_riemann = None
         self.__valeur_integrale = None
 
-    # --- propriétés ---
+
     @property
     def function_str(self):
         return self.__function_str
@@ -91,7 +90,7 @@ class MainWindowModel(QObject):
     def valeur_integrale(self):
         return self.__valeur_integrale
 
-    # --- validation ---
+    # Methode de validation de la fonction, avec l'aide de chatGPT pour certains elements
     def validate_function(self, f_str: str):
         try:
             code = compile(f_str, "<string>", "eval")
@@ -107,7 +106,6 @@ class MainWindowModel(QObject):
             return False
 
     def is_valid_for_calculation(self) -> bool:
-        """Vérifie si tout est valide pour calculer"""
         # Vérifier que la fonction existe
         if not self.function:
             return False
@@ -121,9 +119,8 @@ class MainWindowModel(QObject):
 
         return True
 
-    # --- calculs ---
+    # Calculs des integrales
     def calculer_somme_riemann(self):
-        """Somme de Riemann selon nb_rectangles et orientation"""
         if not self.function:
             return None
 
@@ -141,7 +138,6 @@ class MainWindowModel(QObject):
         return self.__valeur_riemann
 
     def calculer_integrale(self):
-        """Intégrale réelle symbolique ∫ f(x) dx"""
         if not self.function_str:
             return None
         try:
@@ -154,7 +150,6 @@ class MainWindowModel(QObject):
             return None
 
     def calculer(self):
-        """Calcule somme de Riemann et intégrale réelle"""
         self.calculer_somme_riemann()
         self.calculer_integrale()
         self.modelChanged.emit()

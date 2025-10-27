@@ -56,13 +56,11 @@ class FunctionListView(QDockWidget):
         )
 
     def get_latex_color(self):
-        """Retourne la couleur appropriée pour le LaTeX selon le thème"""
         if self.main_window and hasattr(self.main_window, 'is_dark_mode'):
             return 'white' if self.main_window.is_dark_mode else 'black'
         return 'white'  # Par défaut dark mode
 
     def function_to_latex(self, function_str: str) -> str:
-        """Convertit une fonction Python en LaTeX en utilisant sympy"""
         try:
             import sympy as sp
             # Remplacer np.fonction par fonction pour sympy
@@ -83,7 +81,6 @@ class FunctionListView(QDockWidget):
             return f'${latex}$'
 
     def render_latex_to_pixmap(self, latex_str: str) -> QPixmap:
-        """Rend une expression LaTeX en QPixmap avec la couleur adaptée au thème"""
         try:
             # Créer une figure matplotlib
             fig = plt.figure(figsize=(4, 0.5))
@@ -120,7 +117,6 @@ class FunctionListView(QDockWidget):
             return QPixmap()
 
     def update_list_widget(self):
-        """Met à jour le widget selon les fonctions du modèle"""
         self.listWidget.clear()
         for function in self.model.functions:
             # Créer un item
@@ -143,7 +139,6 @@ class FunctionListView(QDockWidget):
             self.listWidget.addItem(item)
 
     def update_latex_color(self):
-        """Met à jour la couleur du LaTeX après changement de thème"""
         self.update_list_widget()
 
     def on_add_function(self):

@@ -95,13 +95,31 @@ class MainWindowModel(QObject):
     def validate_function(self, f_str: str):
         try:
             code = compile(f_str, "<string>", "eval")
-            def f(x): return eval(code, {"x": x, "np": np, "__builtins__": {}})
+
+            def f(x):
+                return eval(code, {"x": x, "np": np, "__builtins__": {}})
+
             f(1)  # test rapide
             self.function_str = f_str
             self.function = f
             return True
         except Exception:
             return False
+
+    def is_valid_for_calculation(self) -> bool:
+        """Vérifie si tout est valide pour calculer"""
+        # Vérifier que la fonction existe
+        if not self.function:
+            return False
+
+        # Vérifier que les bornes sont valides
+        try:
+            if self.borne_inf >= self.borne_sup:
+                return False
+        except:
+            return False
+
+        return True
 
     # --- calculs ---
     def calculer_somme_riemann(self):

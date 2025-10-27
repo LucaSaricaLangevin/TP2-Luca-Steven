@@ -1,5 +1,6 @@
 import os
-from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QLineEdit, QSlider, QComboBox, QPushButton, QMessageBox
+from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QLineEdit, QSlider, QComboBox, QPushButton, QMessageBox, \
+    QGroupBox, QLabel
 from PyQt6.uic import loadUi
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 
@@ -9,6 +10,18 @@ from models.main_window_model import MainWindowModel
 
 
 class MainWindowView(QMainWindow):
+
+    functionLineEdit: QLineEdit
+    infLineEdit: QLineEdit
+    supLineEdit: QLineEdit
+    nombreSlider: QSlider
+    orientationComboBox: QComboBox
+    calculerButton: QPushButton
+    exportButton: QPushButton
+    sommeLineEdit: QLineEdit
+    integraleLineEdit: QLineEdit
+    functionLayout: QVBoxLayout
+
     def __init__(self):
         super().__init__()
         loadUi("../ui/mainWindow.ui", self)

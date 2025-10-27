@@ -1,40 +1,105 @@
-from PyQt6.QtWidgets import QApplication, QMainWindow, QListWidget, QLineEdit, QPushButton, QVBoxLayout, QWidget, QHBoxLayout
-from PyQt6.uic import loadUi
-from PyQt6.QtCore import Qt, pyqtSignal
+import json
+import os
+import numpy as np
+from PyQt6.QtCore import QObject, pyqtSignal
 
-class FunctionViewModel(QMainWindow):
 
-    def __init__(self):
+class FunctionListModel(QObject):
+
+    # signal si fonction change
+    functionsChanged = pyqtSignal()
+
+    def __init__(self, json_file="functions.json"):
         super().__init__()
+        self.__functions = []
+        self.__json_file = json_file
+        self.load_from_json()
 
-        loadUi("ui/function.ui", self)
+    @property
+    def functions(self):
+        return self.__functions.copy()
 
-        modelChanged = pyqtSignal()
+    def add_function(self, function_str: str) -> bool:
+        # ajoute fonction après validation, retourne true si ca a marché, sinon false.
+        if not function_str or function_str.strip() == "":
+            return False
 
-        def __init__(self):
-            super().__init__()
+        function_str = function_str.strip()
 
-        self.addButton.clicked.connect(self.on_add_function())
-        self.cancelButton.clicked.connect(self.on_remove_function)
-        self.saveButton.clicked.connect(self.on_save_function)
+        # check si elle existe déjà
+        if function_str in self.__functions:
+            return False
 
-        self.update_list_widget()
+        # valide la fonction
+        if not self.validate_function(function_str):
+            return False
 
-    def on_add_function(self):
-        function_text = self.functionLineEdit.text()
-        if function_text:
-            self.model.add_function(function_text)
-            self.functionLineEdit.clear()
+        self.__functions.append(function_str)
+        self.functionsChanged.emit()
+        return True
 
-    def on_remove_function(self):
-        selected_item = self.listWidget.currentItem()
-        if selected_item:
-            row = self.listWidget.row(selected_item)
-            self.model.remove_function(row)
+    def remove_function(self, index: int) -> bool:
+        # retire la fonction à l'index donné, true si réussi sinon false
+        if 0 <= index < len(self.__functions):
+            self.__functions.pop(index)
+            self.functionsChanged.emit()
+            return True
+        return False
 
-#    def on_save_function(self):
+    def validate_function(self, f_str: str) -> bool:
+        # true si réussi sinon false
+        try:
+            code = compile(f_str, "<string>", "eval")
 
-#    def update_list_widget(self):
-#        self.listWidget.clear()
-#        for function in self.model.functions:
-#            self.listWidget.addItem(function)
+            def f(x):
+                return eval(code, {"x": x, "np": np, "__builtins__": {}})
+
+            # test avec plusieurs valeurs pour détecter les erreurs
+            f(1.0)
+            f(np.array([1.0, 2.0, 3.0]))
+            return True
+        except Exception:
+            return False
+
+    def save_to_json(self) -> bool:
+        # Sauvegarde la liste des fonctions dans un fichier JSON en format simple: {"functions": ["x**2", "np.sin(x)", ...]}
+        # retourne true si sauvegarde réussi sinon false
+
+        try:
+            data = {"functions": self.__functions}
+            with open(self.__json_file, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+            return True
+        except Exception as e:
+            print(f"Erreur lors de la sauvegarde: {e}")
+            return False
+
+    def load_from_json(self) -> bool:
+        #Charge la liste des fonctions depuis un fichier JSON, retourne true si chargement réussi, false sinon
+
+        if not os.path.exists(self.__json_file):
+            # fichier par défault vide
+            self.__functions = []
+            self.save_to_json()
+            return True
+
+        try:
+            with open(self.__json_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                self.__functions = data.get("functions", [])
+            self.functionsChanged.emit()
+            return True
+        except Exception as e:
+            print(f"Erreur lors du chargement: {e}")
+            self.__functions = []
+            return False
+
+    def get_function(self, index: int) -> str:
+        # retourne la fonction à la position demandée
+        if 0 <= index < len(self.__functions):
+            return self.__functions[index]
+        return ""
+
+    def count(self) -> int:
+        # nb de fonctions
+        return len(self.__functions)

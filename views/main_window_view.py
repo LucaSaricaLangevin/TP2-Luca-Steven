@@ -9,6 +9,7 @@ from canvas.matplotlib_canvas import PlotCanvas
 from models.main_window_model import MainWindowModel
 from models.function_list_model import FunctionListModel
 from views.function_list_view import FunctionListView
+from styles.latex_delegate import LatexDelegate
 
 
 class MainWindowView(QMainWindow):
@@ -52,6 +53,10 @@ class MainWindowView(QMainWindow):
         self.__setup_menu()
         self.__setup_theme_toggle()
         self.__create_rectangle_count_label()
+
+        # Configuration du délégué LaTeX pour le ComboBox
+        self.__latex_delegate = LatexDelegate(self.functionComboBox, self)
+        self.functionComboBox.setItemDelegate(self.__latex_delegate)
 
         self.update_function_combobox()
 
@@ -129,7 +134,11 @@ class MainWindowView(QMainWindow):
             with open(theme_file, "r", encoding="utf-8") as f:
                 self.__app.setStyleSheet(f.read())
 
+            # Notifier la liste de fonctions pour mettre à jour la couleur LaTeX
             self.__function_list_view.update_latex_color()
+
+            # Rafraîchir le ComboBox pour le nouveau thème
+            self.update_function_combobox()
 
         except Exception as e:
             QMessageBox.warning(self, "Erreur", f"Impossible de charger le thème: {e}")

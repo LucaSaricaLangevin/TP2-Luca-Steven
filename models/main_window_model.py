@@ -95,7 +95,21 @@ class MainWindowModel(QObject):
             code = compile(f_str, "<string>", "eval")
 
             def f(x):
-                return eval(code, {"x": x, "np": np, "__builtins__": {}})
+                safe_dict = {
+                    "x": x,
+                    "np": np,
+                    "sin": np.sin,
+                    "cos": np.cos,
+                    "tan": np.tan,
+                    "exp": np.exp,
+                    "log": np.log,
+                    "sqrt": np.sqrt,
+                    "abs": np.abs,
+                    "pi": np.pi,
+                    "e": np.e,
+                    "__builtins__": {}
+                }
+                return eval(code, safe_dict)
 
             f(1)
             self.function_str = f_str

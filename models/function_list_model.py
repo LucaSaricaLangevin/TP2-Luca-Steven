@@ -5,6 +5,7 @@ from PyQt6.QtCore import QObject, pyqtSignal
 
 
 class FunctionListModel(QObject):
+
     # signal si fonction change
     functionsChanged = pyqtSignal()
 
@@ -51,7 +52,21 @@ class FunctionListModel(QObject):
             code = compile(f_str, "<string>", "eval")
 
             def f(x):
-                return eval(code, {"x": x, "np": np, "__builtins__": {}})
+                safe_dict = {
+                    "x": x,
+                    "np": np,
+                    "sin": np.sin,
+                    "cos": np.cos,
+                    "tan": np.tan,
+                    "exp": np.exp,
+                    "log": np.log,
+                    "sqrt": np.sqrt,
+                    "abs": np.abs,
+                    "pi": np.pi,
+                    "e": np.e,
+                    "__builtins__": {}
+                }
+                return eval(code, safe_dict)
 
             # test avec plusieurs valeurs pour détecter les erreurs
             f(1.0)
@@ -74,7 +89,7 @@ class FunctionListModel(QObject):
             return False
 
     def load_from_json(self) -> bool:
-        # Charge la liste des fonctions depuis un fichier JSON, retourne true si chargement réussi, false sinon
+        #Charge la liste des fonctions depuis un fichier JSON, retourne true si chargement réussi, false sinon
 
         if not os.path.exists(self.__json_file):
             # fichier par défault vide

@@ -5,7 +5,6 @@ from PyQt6.QtCore import QObject, pyqtSignal
 
 
 class FunctionListModel(QObject):
-
     # signal si fonction change
     functionsChanged = pyqtSignal()
 
@@ -31,7 +30,7 @@ class FunctionListModel(QObject):
             return False
 
         # valide la fonction
-        if not self.validate_function(function_str):
+        if not self.__validate_function(function_str):
             return False
 
         self.__functions.append(function_str)
@@ -46,7 +45,7 @@ class FunctionListModel(QObject):
             return True
         return False
 
-    def validate_function(self, f_str: str) -> bool:
+    def __validate_function(self, f_str: str) -> bool:
         # true si réussi sinon false
         try:
             code = compile(f_str, "<string>", "eval")
@@ -75,7 +74,7 @@ class FunctionListModel(QObject):
             return False
 
     def load_from_json(self) -> bool:
-        #Charge la liste des fonctions depuis un fichier JSON, retourne true si chargement réussi, false sinon
+        # Charge la liste des fonctions depuis un fichier JSON, retourne true si chargement réussi, false sinon
 
         if not os.path.exists(self.__json_file):
             # fichier par défault vide

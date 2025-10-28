@@ -19,7 +19,6 @@ class MainWindowModel(QObject):
         self.__valeur_riemann = None
         self.__valeur_integrale = None
 
-
     @property
     def function_str(self):
         return self.__function_str
@@ -98,7 +97,7 @@ class MainWindowModel(QObject):
             def f(x):
                 return eval(code, {"x": x, "np": np, "__builtins__": {}})
 
-            f(1)  # test rapide
+            f(1)
             self.function_str = f_str
             self.function = f
             return True
@@ -106,11 +105,9 @@ class MainWindowModel(QObject):
             return False
 
     def is_valid_for_calculation(self) -> bool:
-        # Vérifier que la fonction existe
         if not self.function:
             return False
 
-        # Vérifier que les bornes sont valides
         try:
             if self.borne_inf >= self.borne_sup:
                 return False
@@ -130,7 +127,7 @@ class MainWindowModel(QObject):
 
         if self.orientation == "Droite":
             x_points = np.linspace(a + dx, b, n)
-        else:  # Gauche
+        else:
             x_points = np.linspace(a, b - dx, n)
 
         y_points = self.function(x_points)

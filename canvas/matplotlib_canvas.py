@@ -20,22 +20,27 @@ class PlotCanvas(FigureCanvas):
         matplotlib.rcParams['legend.facecolor'] = '#2b2b2b'
         matplotlib.rcParams['legend.edgecolor'] = '#e0e0e0'
 
-        self.fig, self.ax = plt.subplots()
+        self.__fig, self.__ax = plt.subplots()
 
-        super().__init__(self.fig)
-        self.model = model
-        self.model.modelChanged.connect(self.dessiner)
+        super().__init__(self.__fig)
+        self.__model = model
+        self.__model.modelChanged.connect(self.dessiner)
 
-        # Couleurs par défaut (dark mode)
-        self.bg_color = '#2b2b2b'
-        self.text_color = '#e0e0e0'
+        self.__bg_color = '#2b2b2b'
+        self.__text_color = '#e0e0e0'
+
+    @property
+    def fig(self):
+        return self.__fig
+
+    @property
+    def ax(self):
+        return self.__ax
 
     def set_theme_colors(self, bg_color, text_color):
-        """Change les couleurs du thème en mettant à jour les rcParams"""
-        self.bg_color = bg_color
-        self.text_color = text_color
+        self.__bg_color = bg_color
+        self.__text_color = text_color
 
-        # Mettre à jour les paramètres globaux de matplotlib
         matplotlib.rcParams['figure.facecolor'] = bg_color
         matplotlib.rcParams['axes.facecolor'] = bg_color
         matplotlib.rcParams['axes.edgecolor'] = text_color
@@ -46,62 +51,60 @@ class PlotCanvas(FigureCanvas):
         matplotlib.rcParams['legend.facecolor'] = bg_color
         matplotlib.rcParams['legend.edgecolor'] = text_color
 
-        # Appliquer directement sur la figure et les axes
-        self.fig.patch.set_facecolor(bg_color)
-        self.ax.set_facecolor(bg_color)
-        self.ax.spines['bottom'].set_color(text_color)
-        self.ax.spines['top'].set_color(text_color)
-        self.ax.spines['left'].set_color(text_color)
-        self.ax.spines['right'].set_color(text_color)
-        self.ax.tick_params(colors=text_color, which='both')
-        self.ax.xaxis.label.set_color(text_color)
-        self.ax.yaxis.label.set_color(text_color)
-        self.ax.title.set_color(text_color)
+        self.__fig.patch.set_facecolor(bg_color)
+        self.__ax.set_facecolor(bg_color)
+        self.__ax.spines['bottom'].set_color(text_color)
+        self.__ax.spines['top'].set_color(text_color)
+        self.__ax.spines['left'].set_color(text_color)
+        self.__ax.spines['right'].set_color(text_color)
+        self.__ax.tick_params(colors=text_color, which='both')
+        self.__ax.xaxis.label.set_color(text_color)
+        self.__ax.yaxis.label.set_color(text_color)
+        self.__ax.title.set_color(text_color)
 
-        # Redessiner
-        if self.model.function:
+        if self.__model.function:
             self.dessiner()
         else:
             self.draw()
 
     def dessiner(self):
         try:
-            self.ax.clear()
-            f = self.model.function
+            self.__ax.clear()
+            f = self.__model.function
             if f:
-                a, b = self.model.borne_inf, self.model.borne_sup
+                a, b = self.__model.borne_inf, self.__model.borne_sup
                 x = np.linspace(a, b, 1000)
                 y = f(x)
-                self.ax.plot(x, y, label="f(x)")
+                self.__ax.plot(x, y, label="f(x)")
 
                 # rectangles (seulement si actifs ET nb_rectangles > 0)
-                if self.model.rectangles_active and self.model.nb_rectangles > 0:
-                    n = self.model.nb_rectangles
+                if self.__model.rectangles_active and self.__model.nb_rectangles > 0:
+                    n = self.__model.nb_rectangles
                     dx = (b - a) / n
-                    if self.model.orientation == "Droite":
+                    if self.__model.orientation == "Droite":
                         x_rect = np.linspace(a + dx, b, n)
-                    else:  # Gauche
+                    else:
                         x_rect = np.linspace(a, b - dx, n)
 
                     y_rect = f(x_rect)
 
                     # Pour "Gauche", on doit dessiner le rectangle en partant de x_rect - dx
-                    if self.model.orientation == "Gauche":
-                        self.ax.bar(
+                    if self.__model.orientation == "Gauche":
+                        self.__ax.bar(
                             x_rect - dx, y_rect, width=dx,
                             alpha=0.3, align='edge',
                             edgecolor='black', color='orange',
-                            label=f"Somme de Riemann ({self.model.orientation})"
+                            label=f"Somme de Riemann ({self.__model.orientation})"
                         )
                     else:
-                        self.ax.bar(
+                        self.__ax.bar(
                             x_rect, y_rect, width=dx,
                             alpha=0.3, align='edge',
                             edgecolor='black', color='orange',
-                            label=f"Somme de Riemann ({self.model.orientation})"
+                            label=f"Somme de Riemann ({self.__model.orientation})"
                         )
 
-            self.ax.legend()
+            self.__ax.legend()
             self.draw()
         except Exception as e:
             QMessageBox.critical(self, "Erreur", f"Erreur dans le dessin : {e}")

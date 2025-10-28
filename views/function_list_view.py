@@ -3,7 +3,8 @@ from PyQt6.QtWidgets import QDockWidget, QMessageBox, QListWidget, QLineEdit, QP
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.uic import loadUi
 import matplotlib
-matplotlib.use('Agg')  # Backend sans interface graphique
+
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from io import BytesIO
 
@@ -16,8 +17,8 @@ class FunctionListView(QDockWidget):
         super().__init__()
         loadUi("../ui/function_list.ui", self)
 
-        self.model = model if model else FunctionListModel()
-        self.main_window = main_window
+        self.__model = model if model else FunctionListModel()
+        self.__main_window = main_window
 
         self.listWidget: QListWidget
         self.functionLineEdit: QLineEdit
@@ -25,15 +26,14 @@ class FunctionListView(QDockWidget):
         self.cancelButton: QPushButton
         self.saveButton: QPushButton
 
-        self.addButton.clicked.connect(self.on_add_function)
-        self.cancelButton.clicked.connect(self.on_remove_function)
-        self.saveButton.clicked.connect(self.on_save_functions)
+        self.addButton.clicked.connect(self.__on_add_function)
+        self.cancelButton.clicked.connect(self.__on_remove_function)
+        self.saveButton.clicked.connect(self.__on_save_functions)
 
-        self.model.functionsChanged.connect(self.update_list_widget)
-        self.listWidget.itemClicked.connect(self.on_item_selected)
-        self.listWidget.itemDoubleClicked.connect(self.on_item_double_clicked)
+        self.__model.functionsChanged.connect(self.update_list_widget)
+        self.listWidget.itemClicked.connect(self.__on_item_selected)
+        self.listWidget.itemDoubleClicked.connect(self.__on_item_double_clicked)
 
-        # Configurer le QListWidget pour afficher des icônes LaTeX
         self.listWidget.setIconSize(QSize(200, 40))
 
         self.update_list_widget()
@@ -49,29 +49,24 @@ class FunctionListView(QDockWidget):
             QDockWidget.DockWidgetFeature.DockWidgetMovable |
             QDockWidget.DockWidgetFeature.DockWidgetFloatable
         )
-        # Zones d'ancrage autorisées
         self.setAllowedAreas(
             Qt.DockWidgetArea.LeftDockWidgetArea |
             Qt.DockWidgetArea.RightDockWidgetArea
         )
 
-    def get_latex_color(self):
-        if self.main_window and hasattr(self.main_window, 'is_dark_mode'):
-            return 'white' if self.main_window.is_dark_mode else 'black'
-        return 'white'  # Par défaut dark mode
+    def __get_latex_color(self):
+        if self.__main_window and hasattr(self.__main_window, '_MainWindowView__is_dark_mode'):
+            return 'white' if self.__main_window._MainWindowView__is_dark_mode else 'black'
+        return 'white'
 
-    def function_to_latex(self, function_str: str) -> str:
+    def __function_to_latex(self, function_str: str) -> str:
         try:
             import sympy as sp
-            # Remplacer np.fonction par fonction pour sympy
             sympy_str = function_str.replace('np.', '')
-            # Parser avec sympy
             expr = sp.sympify(sympy_str)
-            # Convertir en LaTeX
             latex = sp.latex(expr)
             return f'${latex}$'
         except:
-            # Fallback : conversion manuelle
             latex = function_str
             latex = latex.replace('**', '^')
             latex = latex.replace('*', r'\cdot ')
@@ -80,32 +75,27 @@ class FunctionListView(QDockWidget):
             latex = latex.replace('np.exp', r'e^')
             return f'${latex}$'
 
-    def render_latex_to_pixmap(self, latex_str: str) -> QPixmap:
+    def __render_latex_to_pixmap(self, latex_str: str) -> QPixmap:
         try:
-            # Créer une figure matplotlib
             fig = plt.figure(figsize=(4, 0.5))
             fig.patch.set_visible(False)
             ax = fig.add_axes([0, 0, 1, 1])
             ax.axis('off')
 
-            # Obtenir la couleur appropriée
-            text_color = self.get_latex_color()
+            text_color = self.__get_latex_color()
 
-            # Rendre le texte LaTeX
             ax.text(0.5, 0.5, latex_str,
-                   fontsize=32,
-                   color=text_color,
-                   ha='center',
-                   va='center',
-                   transform=ax.transAxes)
+                    fontsize=32,
+                    color=text_color,
+                    ha='center',
+                    va='center',
+                    transform=ax.transAxes)
 
-            # Sauvegarder dans un buffer
             buf = BytesIO()
             fig.savefig(buf, format='png', dpi=100, bbox_inches='tight',
-                       transparent=True, pad_inches=0.1)
+                        transparent=True, pad_inches=0.1)
             buf.seek(0)
 
-            # Convertir en QPixmap
             pixmap = QPixmap()
             pixmap.loadFromData(buf.read())
 
@@ -118,22 +108,18 @@ class FunctionListView(QDockWidget):
 
     def update_list_widget(self):
         self.listWidget.clear()
-        for function in self.model.functions:
-            # Créer un item
+        for function in self.__model.functions:
             item = QListWidgetItem()
 
-            # Convertir en LaTeX et créer l'icône
-            latex_str = self.function_to_latex(function)
-            pixmap = self.render_latex_to_pixmap(latex_str)
+            latex_str = self.__function_to_latex(function)
+            pixmap = self.__render_latex_to_pixmap(latex_str)
 
             if not pixmap.isNull():
                 item.setIcon(QIcon(pixmap))
-                item.setText("")  # Pas de texte, juste l'icône LaTeX
+                item.setText("")
             else:
-                # Fallback : afficher le texte normal si le rendu échoue
                 item.setText(function)
 
-            # Stocker la fonction originale dans les données de l'item
             item.setData(Qt.ItemDataRole.UserRole, function)
 
             self.listWidget.addItem(item)
@@ -141,7 +127,7 @@ class FunctionListView(QDockWidget):
     def update_latex_color(self):
         self.update_list_widget()
 
-    def on_add_function(self):
+    def __on_add_function(self):
         function_text = self.functionLineEdit.text().strip()
 
         if not function_text:
@@ -149,12 +135,12 @@ class FunctionListView(QDockWidget):
                                 "Veuillez entrer une fonction")
             return
 
-        if function_text in self.model.functions:
+        if function_text in self.__model.functions:
             QMessageBox.warning(self, "Attention",
                                 "Cette fonction existe déjà dans la liste, espèce de clown !!")
             return
 
-        if self.model.add_function(function_text):
+        if self.__model.add_function(function_text):
             self.functionLineEdit.clear()
         else:
             QMessageBox.critical(self, "Erreur",
@@ -165,7 +151,7 @@ class FunctionListView(QDockWidget):
                                  "- x**3 - 2*x + 1\n"
                                  "- np.exp(-x**2/4)")
 
-    def on_remove_function(self):
+    def __on_remove_function(self):
         selected_item = self.listWidget.currentItem()
 
         if not selected_item:
@@ -174,7 +160,6 @@ class FunctionListView(QDockWidget):
             return
 
         row = self.listWidget.row(selected_item)
-        # Récupérer la fonction originale depuis les données
         function_text = selected_item.data(Qt.ItemDataRole.UserRole)
         if not function_text:
             function_text = selected_item.text()
@@ -185,22 +170,22 @@ class FunctionListView(QDockWidget):
                                      QMessageBox.StandardButton.No)
 
         if reply == QMessageBox.StandardButton.Yes:
-            if self.model.remove_function(row):
+            if self.__model.remove_function(row):
                 pass
 
-    def on_save_functions(self):
+    def __on_save_functions(self):
         # sauvegarde en JSON
-        if self.model.save_to_json():
+        if self.__model.save_to_json():
             QMessageBox.information(self, "Sauvegarde effectuée",
                                     "La liste des fonctions a été sauvegardée dans functions.json")
         else:
             QMessageBox.critical(self, "Erreur",
                                  "Impossible de sauvegarder la liste des fonctions")
 
-    def on_item_selected(self, item):
+    def __on_item_selected(self, item):
         pass
 
-    def on_item_double_clicked(self, item):
+    def __on_item_double_clicked(self, item):
         # il faut double-click pour edit la fonction
         # Récupérer la fonction originale (pas le rendu LaTeX)
         function_text = item.data(Qt.ItemDataRole.UserRole)

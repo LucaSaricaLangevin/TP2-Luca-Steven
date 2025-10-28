@@ -93,7 +93,7 @@ class FunctionListView(QDockWidget):
 
             # Rendre le texte LaTeX
             ax.text(0.5, 0.5, latex_str,
-                   fontsize=18,
+                   fontsize=32,
                    color=text_color,
                    ha='center',
                    va='center',
@@ -151,13 +151,11 @@ class FunctionListView(QDockWidget):
 
         if function_text in self.model.functions:
             QMessageBox.warning(self, "Attention",
-                                "Cette fonction existe déjà dans la liste")
+                                "Cette fonction existe déjà dans la liste, espèce de clown !!")
             return
 
         if self.model.add_function(function_text):
             self.functionLineEdit.clear()
-            QMessageBox.information(self, "Succès",
-                                    f"Fonction '{function_text}' ajoutée avec succès")
         else:
             QMessageBox.critical(self, "Erreur",
                                  "Fonction invalide. Vérifiez la syntaxe.\n\n"
@@ -188,14 +186,13 @@ class FunctionListView(QDockWidget):
 
         if reply == QMessageBox.StandardButton.Yes:
             if self.model.remove_function(row):
-                QMessageBox.information(self, "Succès",
-                                        "Fonction supprimée avec succès")
+                pass
 
     def on_save_functions(self):
         # sauvegarde en JSON
         if self.model.save_to_json():
-            QMessageBox.information(self, "Succès",
-                                    "Liste des fonctions sauvegardée dans functions.json")
+            QMessageBox.information(self, "Sauvegarde effectuée",
+                                    "La liste des fonctions a été sauvegardée dans functions.json")
         else:
             QMessageBox.critical(self, "Erreur",
                                  "Impossible de sauvegarder la liste des fonctions")

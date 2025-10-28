@@ -83,7 +83,6 @@ class MainWindowView(QMainWindow):
                     self.original_toolbar_icons[action] = icon.pixmap(24, 24).copy()
 
     def update_toolbar_icons(self, invert=False):
-        """Met à jour les icônes de la toolbar (inverse si light mode)"""
         for action, original_pixmap in self.original_toolbar_icons.items():
             if invert:
                 # Créer une version inversée
@@ -95,7 +94,6 @@ class MainWindowView(QMainWindow):
                 action.setIcon(QIcon(original_pixmap))
 
     def setup_theme_toggle(self):
-        """Crée et ajoute le bouton de toggle du thème dans la barre de menu"""
         # Créer le bouton toggle
         self.theme_toggle_button = QPushButton("🌙")
         self.theme_toggle_button.setObjectName("themeToggleButton")
